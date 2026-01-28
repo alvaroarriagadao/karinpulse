@@ -2,14 +2,16 @@
  * Pantalla de registro - Registro de nuevos usuarios
  */
 
-import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Animated, Dimensions } from 'react-native';
 import { Text, TextInput, Button, useTheme, HelperText } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useAuth } from '@/store/AuthContext';
 import { validateRUT, validateEmail, validatePassword } from '@/utils/validators';
+import { LinearGradient } from 'expo-linear-gradient';
+import LottieView from 'lottie-react-native';
 
 type AuthStackParamList = {
   Welcome: undefined;
@@ -19,10 +21,35 @@ type AuthStackParamList = {
 
 type RegisterScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Register'>;
 
+const { height } = Dimensions.get('window');
+
 const RegisterScreen = () => {
   const theme = useTheme();
   const navigation = useNavigation<RegisterScreenNavigationProp>();
   const { register, isLoading } = useAuth();
+
+  // Animaciones
+  const lottieRef = useRef<LottieView>(null);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+
+  useEffect(() => {
+    lottieRef.current?.play();
+    
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        friction: 8,
+        tension: 40,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   // Estados del formulario
   const [fullName, setFullName] = useState('');
@@ -31,6 +58,7 @@ const RegisterScreen = () => {
   const [password, setPassword] = useState('');
   const [company, setCompany] = useState('');
   const [position, setPosition] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   // Estados de validación
   const [rutError, setRutError] = useState('');
@@ -114,168 +142,249 @@ const RegisterScreen = () => {
       return;
     }
 
-    // Registrar usuario
-    const { error } = await register({
-      email,
-      password,
+    // Llamar al servicio de registro
+    console.log('📝 RegisterScreen: Enviando datos de registro', {
       fullName: fullName.trim(),
-      rut: rutValidation.clean,
+      rut: rut.trim(),
+      email: email.trim(),
+      company: company.trim(),
+      position: position.trim(),
+      passwordLength: password.length,
+    });
+
+    const { error } = await register({
+      email: email.trim(),
+      password: password.trim(),
+      fullName: fullName.trim(),
+      rut: rut.trim(),
       company: company.trim(),
       position: position.trim(),
     });
 
     if (error) {
+      console.error('❌ RegisterScreen: Error al registrar:', error);
       setSubmitError(error.message || 'Error al registrar usuario');
+    } else {
+      console.log('✅ RegisterScreen: Registro exitoso');
     }
-    // Si no hay error, el AuthContext manejará la navegación
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#00897B', '#00897B']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerGradient}
+      />
+
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardView}
         >
-          <View style={styles.header}>
-            <Text variant="headlineMedium" style={[styles.title, { color: theme.colors.onBackground }]}>
-              Crear Cuenta
-            </Text>
-            <Text variant="bodyMedium" style={[styles.subtitle, { color: theme.colors.onSurfaceVariant }]}>
-              Completa tus datos para comenzar
-            </Text>
-          </View>
-
-          <View style={styles.form}>
-            <TextInput
-              label="Nombre Completo"
-              value={fullName}
-              onChangeText={setFullName}
-              mode="outlined"
-              style={styles.input}
-              autoCapitalize="words"
-              left={<TextInput.Icon icon="account" />}
-            />
-
-            <View>
-              <TextInput
-                label="RUT"
-                value={rut}
-                onChangeText={handleRUTChange}
-                mode="outlined"
-                style={styles.input}
-                placeholder="12.345.678-9"
-                keyboardType="default"
-                left={<TextInput.Icon icon="card-account-details" />}
-              />
-              {rutError ? (
-                <HelperText type="error" visible={!!rutError}>
-                  {rutError}
-                </HelperText>
-              ) : (
-                <HelperText type="info" visible={rut.length > 0 && !rutError}>
-                  Formato: 12.345.678-9 o 12345678-9
-                </HelperText>
-              )}
-            </View>
-
-            <View>
-              <TextInput
-                label="Email"
-                value={email}
-                onChangeText={handleEmailChange}
-                mode="outlined"
-                style={styles.input}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoComplete="email"
-                left={<TextInput.Icon icon="email" />}
-              />
-              {emailError ? (
-                <HelperText type="error" visible={!!emailError}>
-                  {emailError}
-                </HelperText>
-              ) : null}
-            </View>
-
-            <View>
-              <TextInput
-                label="Contraseña"
-                value={password}
-                onChangeText={handlePasswordChange}
-                mode="outlined"
-                style={styles.input}
-                secureTextEntry
-                autoCapitalize="none"
-                left={<TextInput.Icon icon="lock" />}
-              />
-              {passwordError ? (
-                <HelperText type="error" visible={!!passwordError}>
-                  {passwordError}
-                </HelperText>
-              ) : (
-                <HelperText type="info" visible={password.length > 0 && !passwordError}>
-                  Mínimo 8 caracteres, mayúscula, minúscula y número
-                </HelperText>
-              )}
-            </View>
-
-            <TextInput
-              label="Empresa"
-              value={company}
-              onChangeText={setCompany}
-              mode="outlined"
-              style={styles.input}
-              autoCapitalize="words"
-              left={<TextInput.Icon icon="office-building" />}
-            />
-
-            <TextInput
-              label="Cargo"
-              value={position}
-              onChangeText={setPosition}
-              mode="outlined"
-              style={styles.input}
-              autoCapitalize="words"
-              left={<TextInput.Icon icon="briefcase" />}
-            />
-
-            {submitError ? (
-              <HelperText type="error" visible={!!submitError} style={styles.errorText}>
-                {submitError}
-              </HelperText>
-            ) : null}
-
-            <Button
-              mode="contained"
-              onPress={handleSubmit}
-              loading={isLoading}
-              disabled={isLoading}
-              style={[styles.submitButton, { backgroundColor: theme.colors.primary }]}
-              contentStyle={styles.submitButtonContent}
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Header con Lottie */}
+            <Animated.View
+              style={[
+                styles.header,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ translateY: slideAnim }],
+                },
+              ]}
             >
-              Registrarse
-            </Button>
+              <LottieView
+                ref={lottieRef}
+                source={require('../../../assets/images/Friends.json')}
+                autoPlay
+                loop
+                style={styles.lottie}
+              />
+              <Text variant="headlineLarge" style={styles.headerTitle}>
+                Crear Cuenta
+              </Text>
+              <Text variant="bodyLarge" style={styles.headerSubtitle}>
+                Únete a KarinPulse hoy
+              </Text>
+            </Animated.View>
 
-            <Button
-              mode="text"
-              onPress={() => navigation.navigate('Login')}
-              style={styles.linkButton}
+            {/* Formulario */}
+            <Animated.View
+              style={[
+                styles.formCard,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ translateY: slideAnim }],
+                },
+              ]}
             >
-              ¿Ya tienes cuenta? Inicia sesión
-            </Button>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+              <View style={styles.formContent}>
+                <TextInput
+                  label="Nombre Completo *"
+                  value={fullName}
+                  onChangeText={setFullName}
+                  mode="outlined"
+                  style={styles.input}
+                  autoCapitalize="words"
+                  left={<TextInput.Icon icon="account" />}
+                  outlineColor={theme.colors.outline}
+                  activeOutlineColor={theme.colors.primary}
+                  textColor={theme.colors.onSurface}
+                />
+
+                <TextInput
+                  label="RUT (ej: 12.345.678-9) *"
+                  value={rut}
+                  onChangeText={handleRUTChange}
+                  mode="outlined"
+                  style={styles.input}
+                  error={!!rutError}
+                  left={<TextInput.Icon icon="card-account-details" />}
+                  outlineColor={theme.colors.outline}
+                  activeOutlineColor={theme.colors.primary}
+                  textColor={theme.colors.onSurface}
+                />
+                {rutError ? (
+                  <Text variant="bodyMedium" style={styles.errorText}>
+                    {rutError}
+                  </Text>
+                ) : null}
+
+                <TextInput
+                  label="Email *"
+                  value={email}
+                  onChangeText={handleEmailChange}
+                  mode="outlined"
+                  style={styles.input}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  error={!!emailError}
+                  left={<TextInput.Icon icon="email" />}
+                  outlineColor={theme.colors.outline}
+                  activeOutlineColor={theme.colors.primary}
+                  textColor={theme.colors.onSurface}
+                />
+                {emailError ? (
+                  <Text variant="bodyMedium" style={styles.errorText}>
+                    {emailError}
+                  </Text>
+                ) : null}
+
+                <TextInput
+                  label="Contraseña *"
+                  value={password}
+                  onChangeText={handlePasswordChange}
+                  mode="outlined"
+                  style={styles.input}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  error={!!passwordError}
+                  left={<TextInput.Icon icon="lock" />}
+                  right={
+                    <TextInput.Icon
+                      icon={showPassword ? 'eye-off' : 'eye'}
+                      onPress={() => setShowPassword(!showPassword)}
+                    />
+                  }
+                  outlineColor={theme.colors.outline}
+                  activeOutlineColor={theme.colors.primary}
+                  textColor={theme.colors.onSurface}
+                />
+                {passwordError ? (
+                  <Text variant="bodyMedium" style={styles.errorText}>
+                    {passwordError}
+                  </Text>
+                ) : null}
+                {password && !passwordError && (
+                  <HelperText type="info" style={styles.helperText}>
+                    La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y
+                    un número.
+                  </HelperText>
+                )}
+
+                <TextInput
+                  label="Empresa / Institución *"
+                  value={company}
+                  onChangeText={setCompany}
+                  mode="outlined"
+                  style={styles.input}
+                  left={<TextInput.Icon icon="office-building" />}
+                  outlineColor={theme.colors.outline}
+                  activeOutlineColor={theme.colors.primary}
+                  textColor={theme.colors.onSurface}
+                />
+
+                <TextInput
+                  label="Cargo / Posición *"
+                  value={position}
+                  onChangeText={setPosition}
+                  mode="outlined"
+                  style={styles.input}
+                  left={<TextInput.Icon icon="briefcase" />}
+                  outlineColor={theme.colors.outline}
+                  activeOutlineColor={theme.colors.primary}
+                  textColor={theme.colors.onSurface}
+                />
+
+                {submitError ? (
+                  <Text variant="bodyMedium" style={[styles.errorText, styles.submitError]}>
+                    {submitError}
+                  </Text>
+                ) : null}
+
+                <Button
+                  mode="contained"
+                  onPress={handleSubmit}
+                  loading={isLoading}
+                  disabled={isLoading}
+                  style={styles.submitButton}
+                  contentStyle={styles.submitButtonContent}
+                  labelStyle={styles.submitButtonLabel}
+                  buttonColor={theme.colors.primary}
+                  elevation={4}
+                >
+                  Crear Cuenta
+                </Button>
+
+                <Button
+                  mode="text"
+                  onPress={() => navigation.navigate('Login')}
+                  style={styles.linkButton}
+                  textColor={theme.colors.primary}
+                  labelStyle={styles.linkButtonLabel}
+                >
+                  ¿Ya tienes cuenta? Inicia sesión
+                </Button>
+              </View>
+            </Animated.View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    backgroundColor: '#F5F7FA',
+  },
+  headerGradient: {
+    height: height * 0.32,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+  },
+  safeArea: {
     flex: 1,
   },
   keyboardView: {
@@ -284,38 +393,91 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     padding: 24,
+    paddingTop: 30,
   },
   header: {
-    marginBottom: 32,
+    alignItems: 'center',
+    marginBottom: 28,
   },
-  title: {
+  lottie: {
+    width: 120,
+    height: 120,
+    marginBottom: 10,
+  },
+  headerTitle: {
     fontWeight: 'bold',
-    marginBottom: 8,
+    color: '#FFFFFF',
+    marginBottom: 6,
+    fontSize: 30,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
-  subtitle: {
-    opacity: 0.7,
+  headerSubtitle: {
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '500',
+    textShadowColor: 'rgba(0, 0, 0, 0.15)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
-  form: {
-    gap: 16,
+  formCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 28,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    marginBottom: 30,
+  },
+  formContent: {
+    gap: 18,
   },
   input: {
-    marginBottom: 4,
+    backgroundColor: '#F8F9FA',
+    fontSize: 16,
   },
   errorText: {
-    marginTop: -8,
+    color: '#C62828',
+    marginTop: -14,
+    marginLeft: 12,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  helperText: {
+    marginTop: -14,
+    marginLeft: 12,
+    fontSize: 13,
+    color: '#616161',
+  },
+  submitError: {
+    marginTop: 0,
+    textAlign: 'center',
+    backgroundColor: '#FFEBEE',
+    padding: 14,
+    borderRadius: 10,
   },
   submitButton: {
-    marginTop: 8,
-    borderRadius: 12,
+    marginTop: 20,
+    borderRadius: 14,
+    elevation: 4,
   },
   submitButtonContent: {
-    paddingVertical: 8,
+    paddingVertical: 10,
+  },
+  submitButtonLabel: {
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   linkButton: {
-    marginTop: 8,
+    marginTop: 12,
+  },
+  linkButtonLabel: {
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 
 export default RegisterScreen;
-
-

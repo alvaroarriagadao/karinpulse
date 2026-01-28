@@ -1,0 +1,191 @@
+import { StyleSheet, Dimensions } from 'react-native';
+import { MD3Theme } from 'react-native-paper';
+
+const { width } = Dimensions.get('window');
+
+export const createStyles = (theme: MD3Theme) => StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: theme.dark ? '#121212' : '#F5F7FA',
+  },
+  headerBackground: {
+    backgroundColor: theme.colors.primary,
+    height: 200,
+    borderBottomLeftRadius: 35,
+    borderBottomRightRadius: 35,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 0,
+  },
+  scrollContent: {
+    paddingHorizontal: 22,
+    paddingBottom: 50,
+    paddingTop: 70,
+  },
+  headerContent: {
+    marginBottom: 28,
+    zIndex: 1,
+  },
+  greeting: {
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    fontSize: 32,
+    letterSpacing: 0.3,
+    textShadowColor: 'rgba(0, 0, 0, 0.15)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  subGreeting: {
+    color: '#FFFFFF',
+    marginTop: 6,
+    fontSize: 18,
+    fontWeight: '500',
+    letterSpacing: 0.2,
+    textShadowColor: 'rgba(0, 0, 0, 0.1)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  card: {
+    backgroundColor: theme.dark ? '#1E1E1E' : '#FFFFFF',
+    borderRadius: 26,
+    padding: 28,
+    marginBottom: 26,
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 14,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: theme.colors.onSurface,
+    marginBottom: 24,
+    textAlign: 'center',
+    letterSpacing: 0.3,
+  },
+  moodContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 10,
+  },
+  moodItemContainer: {
+    alignItems: 'center',
+    width: (width - 100) / 5,
+  },
+  moodButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 62,
+    height: 62,
+    borderRadius: 31,
+    backgroundColor: theme.dark ? '#2C2C2C' : '#F8F9FA',
+    borderWidth: 2.5,
+    borderColor: 'transparent',
+    marginBottom: 10,
+  },
+  moodEmoji: {
+    fontSize: 36,
+  },
+  moodLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    textAlign: 'center',
+    color: theme.dark ? '#B0B0B0' : '#616161',
+    letterSpacing: 0.2,
+  },
+  moodLabelSelected: {
+    color: theme.colors.primary,
+    fontWeight: 'bold',
+  },
+  // Feedback Section
+  feedbackContainer: {
+    marginTop: 10,
+  },
+  feedbackCard: {
+    backgroundColor: theme.dark ? 'rgba(239, 83, 80, 0.08)' : '#FFF5F5',
+    borderRadius: 18,
+    padding: 20,
+    borderWidth: 1.5,
+    borderColor: theme.dark ? 'rgba(239, 83, 80, 0.2)' : 'rgba(211, 47, 47, 0.15)',
+  },
+  feedbackTitle: {
+    fontWeight: 'bold',
+    color: theme.dark ? '#EF5350' : '#C62828',
+    marginBottom: 6,
+    fontSize: 17,
+    letterSpacing: 0.2,
+  },
+  feedbackSubtitle: {
+    color: theme.colors.onSurfaceVariant,
+    marginBottom: 18,
+    fontSize: 15,
+    lineHeight: 20,
+  },
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 18,
+  },
+  chip: {
+    backgroundColor: theme.dark ? '#2C2C2C' : '#FFFFFF',
+    borderColor: theme.dark ? '#4A4A4A' : '#BDBDBD',
+  },
+  chipSelected: {
+    backgroundColor: theme.dark ? 'rgba(239, 83, 80, 0.15)' : '#FFEBEE',
+    borderColor: theme.colors.error,
+  },
+  input: {
+    backgroundColor: theme.dark ? '#2C2C2C' : '#FFFFFF',
+    marginBottom: 18,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: theme.dark ? '#4A4A4A' : '#BDBDBD',
+    minHeight: 90,
+    fontSize: 15,
+  },
+  positiveCard: {
+    backgroundColor: theme.dark ? 'rgba(102, 187, 106, 0.08)' : '#F1F8E9',
+    borderRadius: 18,
+    padding: 28,
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: theme.dark ? 'rgba(102, 187, 106, 0.2)' : 'rgba(102, 187, 106, 0.15)',
+  },
+  submitButton: {
+    marginTop: 28,
+    borderRadius: 14,
+    paddingVertical: 8,
+    elevation: 4,
+  },
+  // Voted State
+  votedCard: {
+    backgroundColor: theme.dark ? '#1E1E1E' : '#FFFFFF',
+    borderRadius: 26,
+    padding: 36,
+    alignItems: 'center',
+    elevation: 4,
+  },
+  votedEmoji: {
+    fontSize: 72,
+    marginBottom: 20,
+  },
+  votedTitle: {
+    fontWeight: 'bold',
+    color: theme.colors.primary,
+    marginBottom: 10,
+    textAlign: 'center',
+    fontSize: 22,
+    letterSpacing: 0.3,
+  },
+  votedSubtitle: {
+    textAlign: 'center',
+    color: theme.colors.onSurfaceVariant,
+    lineHeight: 24,
+    fontSize: 16,
+  },
+});
